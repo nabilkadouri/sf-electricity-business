@@ -1,0 +1,240 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\ChargingStationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
+
+#[ORM\Entity(repositoryClass: ChargingStationRepository::class)]
+#[ApiResource]
+class ChargingStation
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $nameStation = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2)]
+    private ?string $power = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
+    private ?string $pricePerHour = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $picture = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $createAt = null;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isAvailable = false;
+
+    #[ORM\ManyToOne(inversedBy: 'chargingSations')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
+
+    #[ORM\ManyToOne(inversedBy: 'chargingStations')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Location $location = null;
+
+    /**
+     * @var Collection<int, Booking>
+     */
+    #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'chargingStation', orphanRemoval: true)]
+    private Collection $bookings;
+
+    /**
+     * @var Collection<int, Timeslot>
+     */
+    #[ORM\OneToMany(targetEntity: Timeslot::class, mappedBy: 'chargingStation', orphanRemoval: true)]
+    private Collection $timeslots;
+
+    public function __construct()
+    {
+        $this->bookings = new ArrayCollection();
+        $this->timeslots = new ArrayCollection();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getNameStation(): ?string
+    {
+        return $this->nameStation;
+    }
+
+    public function setNameStation(string $nameStation): static
+    {
+        $this->nameStation = $nameStation;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getPower(): ?string
+    {
+        return $this->power;
+    }
+
+    public function setPower(string $power): static
+    {
+        $this->power = $power;
+
+        return $this;
+    }
+
+    public function getPricePerHour(): ?string
+    {
+        return $this->pricePerHour;
+    }
+
+    public function setPricePerHour(string $pricePerHour): static
+    {
+        $this->pricePerHour = $pricePerHour;
+
+        return $this;
+    }
+
+    public function getPicture(): ?string
+    {
+        return $this->picture;
+    }
+
+    public function setPicture(?string $picture): static
+    {
+        $this->picture = $picture;
+
+        return $this;
+    }
+
+    public function getCreateAt(): ?\DateTimeInterface
+    {
+        return $this->createAt;
+    }
+
+    public function setCreateAt(\DateTimeInterface $createAt): static
+    {
+        $this->createAt = $createAt;
+
+        return $this;
+    }
+
+    public function isAvailable(): ?bool
+    {
+        return $this->isAvailable;
+    }
+
+    public function setIsAvailable(bool $isAvailable): static
+    {
+        $this->isAvailable = $isAvailable;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getLocation(): ?Location
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?Location $location): static
+    {
+        $this->location = $location;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Booking>
+     */
+    public function getBookings(): Collection
+    {
+        return $this->bookings;
+    }
+
+    public function addBooking(Booking $booking): static
+    {
+        if (!$this->bookings->contains($booking)) {
+            $this->bookings->add($booking);
+            $booking->setChargingStation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBooking(Booking $booking): static
+    {
+        if ($this->bookings->removeElement($booking)) {
+            // set the owning side to null (unless already changed)
+            if ($booking->getChargingStation() === $this) {
+                $booking->setChargingStation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Timeslot>
+     */
+    public function getTimeslots(): Collection
+    {
+        return $this->timeslots;
+    }
+
+    public function addTimeslot(Timeslot $timeslot): static
+    {
+        if (!$this->timeslots->contains($timeslot)) {
+            $this->timeslots->add($timeslot);
+            $timeslot->setChargingStation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTimeslot(Timeslot $timeslot): static
+    {
+        if ($this->timeslots->removeElement($timeslot)) {
+            // set the owning side to null (unless already changed)
+            if ($timeslot->getChargingStation() === $this) {
+                $timeslot->setChargingStation(null);
+            }
+        }
+
+        return $this;
+    }
+}
