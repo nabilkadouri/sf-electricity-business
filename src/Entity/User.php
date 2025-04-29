@@ -5,14 +5,15 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Controller\MeController;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Scheb\TwoFactorBundle\Model\Email\TwoFactorInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -28,37 +29,37 @@ use Symfony\Component\Serializer\Annotation\Groups;
             security: "is_granted('IS_AUTHENTICATED_FULLY')",
             read: false,
             output: User::class,
+            normalizationContext: ['groups' => ['user:read']],
         ),
+        new Get(normalizationContext: ['groups' => ['user:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['user:read']]),
         new Post(
             normalizationContext: ['groups' => ['user:read']], 
             denormalizationContext: ['groups' => ['user:write']]
         ),
-        new Patch(),
+        new Patch(denormalizationContext: ['groups' => ['user:write']]),
         new Delete()
     ],
     normalizationContext: ['groups' => ['user:read']], 
     denormalizationContext: ['groups' => ['user:write']] 
 )]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface,TwoFactorInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read', 'user:write'])]
-
+    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
     #[Groups(['user:read', 'user:write'])]
-
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Groups(['user:read', 'user:write'])]
-
+    #[Groups(['user:read'])]
     private array $roles = [];
 
     /**
@@ -69,11 +70,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read', 'user:write','booking:read'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read', 'user:write','booking:read'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
@@ -89,45 +90,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $city = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read', 'user:write',])]
     private ?string $phoneNumber = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['user:read', 'user:write'])]
     private ?string $picture = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true, length:6)]
     #[Groups(['user:read', 'user:write'])]
-    private ?bool $isValid = null;
+    private ?string $codeCheck = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['user:read', 'user:write'])]
-    private ?int $codeCheck = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['user:read', 'user:write'])]
-    private ?\DateTimeInterface $verificationCodeExpiresAt = null;
-
-    #[ORM\Column(nullable: true)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Groups(['user:read'])]
     private ?bool $ownsStation = null;
 
     /**
      * @var Collection<int, Booking>
      */
     #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'user', orphanRemoval: true)]
+    #[Groups(['user:read'])]
     private Collection $bookings;
 
     /**
      * @var Collection<int, ChargingStation>
      */
     #[ORM\OneToMany(targetEntity: ChargingStation::class, mappedBy: 'user', orphanRemoval: true)]
-    private Collection $chargingSations;
+    #[Groups(['user:read'])]
+    private Collection $chargingStations;
 
     public function __construct()
     {
         $this->bookings = new ArrayCollection();
-        $this->chargingSations = new ArrayCollection();
+        $this->chargingStations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -145,6 +140,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->email = $email;
 
         return $this;
+    }
+    public function isEmailAuthEnabled(): bool
+    {
+        return true; 
+    }
+
+    public function getEmailAuthRecipient(): string
+    {
+        return $this->email;
+    }
+
+    public function getEmailAuthCode(): string
+    {
+        if (null === $this->codeCheck) {
+            throw new \LogicException("Le code d'authentification de l'e-mail n'a pas été défini");
+        }
+
+        return $this->codeCheck;
+    }
+
+    public function setEmailAuthCode(string $authCode): void
+    {
+        $this->codeCheck= $authCode;
     }
 
     /**
@@ -165,7 +183,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
@@ -290,42 +307,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
 
-    public function isValid(): ?bool
-    {
-        return $this->isValid;
-    }
-
-    public function setIsValid(bool $isValid): static
-    {
-        $this->isValid = $isValid;
-
-        return $this;
-    }
-
-    public function getCodeCheck(): ?int
-    {
-        return $this->codeCheck;
-    }
-
-    public function setCodeCheck(?int $codeCheck): static
-    {
-        $this->codeCheck = $codeCheck;
-
-        return $this;
-    }
-
-    public function getVerificationCodeExpiresAt(): ?\DateTimeInterface
-    {
-        return $this->verificationCodeExpiresAt;
-    }
-
-    public function setVerificationCodeExpiresAt(?\DateTimeInterface $verificationCodeExpiresAt): static
-    {
-        $this->verificationCodeExpiresAt = $verificationCodeExpiresAt;
-
-        return $this;
-    }
-
     public function isOwnsStation(): ?bool
     {
         return $this->ownsStation;
@@ -371,30 +352,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, ChargingStation>
      */
-    public function getChargingSations(): Collection
+    public function getChargingStations(): Collection
     {
-        return $this->chargingSations;
+        return $this->chargingStations;
     }
 
-    public function addChargingSation(ChargingStation $chargingSation): static
+    public function addChargingStation(ChargingStation $chargingStation): static
     {
-        if (!$this->chargingSations->contains($chargingSation)) {
-            $this->chargingSations->add($chargingSation);
-            $chargingSation->setUser($this);
+        if (!$this->chargingStations->contains($chargingStation)) {
+            $this->chargingStations->add($chargingStation);
+            $chargingStation->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeChargingSation(ChargingStation $chargingSation): static
+    public function removeChargingStation(ChargingStation $chargingStation): static
     {
-        if ($this->chargingSations->removeElement($chargingSation)) {
+        if ($this->chargingStations->removeElement($chargingStation)) {
             // set the owning side to null (unless already changed)
-            if ($chargingSation->getUser() === $this) {
-                $chargingSation->setUser(null);
+            if ($chargingStation->getUser() === $this) {
+                $chargingStation->setUser(null);
             }
         }
 
         return $this;
     }
 }
+
+
