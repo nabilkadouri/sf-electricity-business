@@ -8,33 +8,54 @@ use App\Repository\BookingRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: BookingRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext:['groups' => ['booking:read']],
+    denormalizationContext: ['groups' => ['booking:write']]
+)]
 class Booking
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['booking:read', 'charging_station:read', 'user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['booking:read', 'booking:write'])]
     private ?\DateTimeInterface $createAt = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Groups(['booking:read', 'booking:write', 'charging_station:read', 'user:read'])]
     private ?\DateTimeInterface $startDate = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Groups(['booking:read', 'booking:write', 'charging_station:read', 'user:read'])]
     private ?\DateTimeInterface $endDate = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
+    #[Groups(['booking:read', 'booking:write', 'charging_station:read', 'user:read'])]
     private ?string $totalAmount = null;
 
     #[ORM\Column(enumType: BookingStatus::class)]
+    #[Groups(['booking:read', 'booking:write', 'charging_station:read', 'user:read'])]
     private ?BookingStatus $status = null;
 
     #[ORM\Column(enumType: PaymentMethod::class, nullable: false)]
+    #[Groups(['booking:read', 'booking:write', 'charging_station:read', 'user:read'])]
     private ?PaymentMethod $paymentType = null;
+
+    #[ORM\ManyToOne(inversedBy: 'bookings')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['booking:write', 'booking:read'])]
+    private ?User $user = null;
+
+    #[ORM\ManyToOne(inversedBy: 'bookings')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['booking:read','booking:write'])]    
+    private ?ChargingStation $chargingStation = null;
 
     public function getId(): ?int
     {
@@ -110,6 +131,30 @@ class Booking
     public function setPaymentType( PaymentMethod $paymentType): static
     {
         $this->paymentType = $paymentType;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getChargingStation(): ?ChargingStation
+    {
+        return $this->chargingStation;
+    }
+
+    public function setChargingStation(?ChargingStation $chargingStation): static
+    {
+        $this->chargingStation = $chargingStation;
 
         return $this;
     }

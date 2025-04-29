@@ -3,66 +3,89 @@
 namespace App\Entity;
 
 use App\Repository\ChargingStationRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ChargingStationRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['charging_station:read']],
+    denormalizationContext: ['groups' => ['charging_station:write']]
+)]
 class ChargingStation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['charging_station:read', 'booking:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['charging_station:read', 'charging_station:write', 'booking:read'])]
     private ?string $nameStation = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['charging_station:read', 'charging_station:write'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2)]
+    #[Groups(['charging_station:read', 'charging_station:write', 'booking:read'])]
     private ?string $power = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['charging_station:read'])] 
+    private ?string $plugType = null;
+
     #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
+    #[Groups(['charging_station:read', 'charging_station:write','booking:read'])]
     private ?string $pricePerHour = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['charging_station:read', 'charging_station:write'], )]
     private ?string $picture = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['charging_station:read'])]
     private ?\DateTimeInterface $createAt = null;
 
     #[ORM\Column(type: 'boolean')]
+    #[Groups(['charging_station:read', 'charging_station:write'])]
     private bool $isAvailable = false;
 
-    #[ORM\ManyToOne(inversedBy: 'chargingSations')]
+    #[ORM\ManyToOne(targetEntity: LocationStation::class, inversedBy: 'chargingStations', cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $user = null;
+    #[Groups(['charging_station:read', 'charging_station:write','booking:read'])]
+    private ?LocationStation $locationStation = null;
+
+    /**
+     * @var Collection<int, Timeslot>
+     */
+    #[ORM\OneToMany(targetEntity: Timeslot::class, mappedBy: 'chargingStation', orphanRemoval: true, cascade: ['persist'])]
+    #[Groups(['charging_station:read','charging_station:write'])]
+    private Collection $timeslots;
 
     #[ORM\ManyToOne(inversedBy: 'chargingStations')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Location $location = null;
+    #[Groups(['charging_station:read', 'charging_station:write'])]
+    private ?User $user = null;
 
     /**
      * @var Collection<int, Booking>
      */
     #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'chargingStation', orphanRemoval: true)]
+    #[Groups(['charging_station:read'])]
     private Collection $bookings;
-
-    /**
-     * @var Collection<int, Timeslot>
-     */
-    #[ORM\OneToMany(targetEntity: Timeslot::class, mappedBy: 'chargingStation', orphanRemoval: true)]
-    private Collection $timeslots;
 
     public function __construct()
     {
+        $this->createAt = new DateTimeImmutable();
         $this->bookings = new ArrayCollection();
         $this->timeslots = new ArrayCollection();
+        $this->plugType = 'Type 2';
     }
 
     public function getId(): ?int
@@ -166,17 +189,6 @@ class ChargingStation
         return $this;
     }
 
-    public function getLocation(): ?Location
-    {
-        return $this->location;
-    }
-
-    public function setLocation(?Location $location): static
-    {
-        $this->location = $location;
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, Booking>
@@ -234,6 +246,18 @@ class ChargingStation
                 $timeslot->setChargingStation(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getLocationStation(): ?LocationStation
+    {
+        return $this->locationStation;
+    }
+
+    public function setLocationStation(?LocationStation $locationStation): static
+    {
+        $this->locationStation = $locationStation;
 
         return $this;
     }
