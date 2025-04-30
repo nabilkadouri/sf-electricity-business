@@ -5,7 +5,7 @@ controllers:
     type: attribute
 
 2fa_login:
-    path: /2fa
+    path: /login
 
 2fa_login_check:
-    path: /2fa/check
+    path: /login/check
