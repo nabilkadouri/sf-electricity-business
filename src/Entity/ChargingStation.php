@@ -21,11 +21,11 @@ class ChargingStation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['charging_station:read', 'booking:read'])]
+    #[Groups(['charging_station:read', 'booking:read','user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['charging_station:read', 'charging_station:write', 'booking:read'])]
+    #[Groups(['charging_station:read', 'charging_station:write', 'booking:read', 'user:read'])]
     private ?string $nameStation = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -33,7 +33,7 @@ class ChargingStation
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2)]
-    #[Groups(['charging_station:read', 'charging_station:write', 'booking:read'])]
+    #[Groups(['charging_station:read', 'charging_station:write', 'booking:read','user:read'])]
     private ?string $power = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -45,27 +45,27 @@ class ChargingStation
     private ?string $pricePerHour = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['charging_station:read', 'charging_station:write'], )]
+    #[Groups(['charging_station:read', 'charging_station:write','user:read'], )]
     private ?string $picture = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Groups(['charging_station:read'])]
+    #[Groups(['charging_station:read','user:read'])]
     private ?\DateTimeInterface $createAt = null;
 
     #[ORM\Column(type: 'boolean')]
-    #[Groups(['charging_station:read', 'charging_station:write'])]
+    #[Groups(['charging_station:read', 'charging_station:write','user:read'])]
     private bool $isAvailable = false;
 
     #[ORM\ManyToOne(targetEntity: LocationStation::class, inversedBy: 'chargingStations', cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['charging_station:read', 'charging_station:write','booking:read'])]
+    #[Groups(['charging_station:read', 'charging_station:write','booking:read','user:read'])]
     private ?LocationStation $locationStation = null;
 
     /**
      * @var Collection<int, Timeslot>
      */
     #[ORM\OneToMany(targetEntity: Timeslot::class, mappedBy: 'chargingStation', orphanRemoval: true, cascade: ['persist'])]
-    #[Groups(['charging_station:read','charging_station:write'])]
+    #[Groups(['charging_station:read','charging_station:write','user:read'])]
     private Collection $timeslots;
 
     #[ORM\ManyToOne(inversedBy: 'chargingStations')]

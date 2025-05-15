@@ -19,31 +19,31 @@ class LocationStation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['location_station:read', 'charging_station:read','booking:read' ])]
+    #[Groups(['location_station:read', 'charging_station:read','booking:read','user:read' ])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read'])]
+    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read','user:read'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read'])]
+    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read','user:read'])]
     private ?string $address = null;
 
     #[ORM\Column(length: 10)]
-    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read'])]
+    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read','user:read'])]
     private ?string $postaleCode = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read'])]
+    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read','user:read'])]
     private ?string $city = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read'])]
+    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read','user:read'])]
     private ?float $latitude = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read'])]
+    #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read','user:read'])]
     private ?float $longitude = null;
 
     /**
