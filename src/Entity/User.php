@@ -70,11 +70,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface,TwoFacto
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user:read', 'user:write','booking:read'])]
+    #[Groups(['user:read', 'user:write','booking:read','charging_station:read'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user:read', 'user:write','booking:read'])]
+    #[Groups(['user:read', 'user:write','booking:read','charging_station:read'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]

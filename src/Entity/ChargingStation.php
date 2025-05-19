@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\GetCollection;
+use App\Controller\GetChargingStationByUserController;
 use App\Repository\ChargingStationRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -13,6 +15,17 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ChargingStationRepository::class)]
 #[ApiResource(
+    operations: [
+        new GetCollection(
+            name: 'charging_stations',
+            uriTemplate: '/charging_stations',
+            controller: GetChargingStationByUserController::class,
+            security: "is_granted('IS_AUTHENTICATED_FULLY')",
+            read: false,
+            output: ChargingStation::class,
+            normalizationContext: ['groups' => ['charging_station:read']],
+        )
+    ],
     normalizationContext: ['groups' => ['charging_station:read']],
     denormalizationContext: ['groups' => ['charging_station:write']]
 )]
@@ -77,7 +90,7 @@ class ChargingStation
      * @var Collection<int, Booking>
      */
     #[ORM\OneToMany(targetEntity: Booking::class, mappedBy: 'chargingStation', orphanRemoval: true)]
-    #[Groups(['charging_station:read'])]
+    #[Groups(['charging_station:read', "user:read"])]
     private Collection $bookings;
 
     public function __construct()

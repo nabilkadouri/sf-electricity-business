@@ -19,19 +19,19 @@ class Timeslot
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['timeslot:read', 'charging_station:read','booking:read','user:read'])]
+    #[Groups(['timeslot:read', 'charging_station:read','booking:read'])]
     private ?int $id = null;
 
     #[ORM\Column(enumType: DayOfWeek::class)]
-    #[Groups(['timeslot:read', 'timeslot:write', 'charging_station:read','charging_station:write','booking:read','user:read'])]
+    #[Groups(['timeslot:read', 'timeslot:write', 'charging_station:read','charging_station:write','booking:read'])]
     private ?DayOfWeek $dayOfWeek = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE)]
-    #[Groups(['timeslot:read', 'timeslot:write', 'charging_station:read','charging_station:write','booking:read','user:read'])]
+    #[Groups(['timeslot:read', 'timeslot:write', 'charging_station:read','charging_station:write','booking:read'])]
     private ?\DateTimeInterface $startTime = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE)]
-    #[Groups(['timeslot:read', 'timeslot:write', 'charging_station:read','charging_station:write','booking:read','user:read'])]
+    #[Groups(['timeslot:read', 'timeslot:write', 'charging_station:read','charging_station:write','booking:read'])]
     private ?\DateTimeInterface $endTime = null;
 
     #[ORM\ManyToOne(inversedBy: 'timeslots')]
