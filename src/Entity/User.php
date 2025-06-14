@@ -34,14 +34,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Get(normalizationContext: ['groups' => ['user:read']]),
         new GetCollection(normalizationContext: ['groups' => ['user:read']]),
         new Post(
-            normalizationContext: ['groups' => ['user:read']], 
+            normalizationContext: ['groups' => ['user:read']],
             denormalizationContext: ['groups' => ['user:write']]
         ),
         new Patch(denormalizationContext: ['groups' => ['user:write']]),
         new Delete()
     ],
-    normalizationContext: ['groups' => ['user:read']], 
-    denormalizationContext: ['groups' => ['user:write']] 
+    normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:write']]
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface,TwoFactorInterface
 {
@@ -143,7 +143,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface,TwoFacto
     }
     public function isEmailAuthEnabled(): bool
     {
-        return true; 
+        return true;
     }
 
     public function getEmailAuthRecipient(): string

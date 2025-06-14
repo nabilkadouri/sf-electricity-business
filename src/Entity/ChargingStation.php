@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\GetCollection;
 use App\Controller\GetChargingStationByUserController;
+use App\Enum\ChargingStationStatus;
 use App\Repository\ChargingStationRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -54,7 +55,7 @@ class ChargingStation
     private ?string $plugType = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
-    #[Groups(['charging_station:read', 'charging_station:write','booking:read'])]
+    #[Groups(['charging_station:read', 'charging_station:write','booking:read',"user:read"])]
     private ?string $pricePerHour = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -64,6 +65,10 @@ class ChargingStation
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['charging_station:read','user:read'])]
     private ?\DateTimeInterface $createAt = null;
+
+    #[ORM\Column(enumType: ChargingStationStatus::class)]
+    #[Groups(['charging_station:read','charging_station:write','booking:read','user:read'])]
+    private ?ChargingStationStatus $status = null;
 
     #[ORM\Column(type: 'boolean')]
     #[Groups(['charging_station:read', 'charging_station:write','user:read'])]
@@ -174,6 +179,18 @@ class ChargingStation
     public function setCreateAt(\DateTimeInterface $createAt): static
     {
         $this->createAt = $createAt;
+
+        return $this;
+    }
+
+    public function getStatus(): ?ChargingStationStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(ChargingStationStatus $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }
