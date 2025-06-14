@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\Patch;
 use App\Enum\BookingStatus;
 use App\Enum\PaymentMethod;
 use App\Repository\BookingRepository;
@@ -12,6 +13,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: BookingRepository::class)]
 #[ApiResource(
+    operations: [
+        new Patch(
+            denormalizationContext: ['groups' => ['booking:write']],
+            security: "is_granted('ROLE_USER') and object.getChargingStation().getUser() == user",
+            securityMessage: "Vous n'êtes pas autorisé à modifier le statut de cette réservation."
+        )
+        ],
     normalizationContext:['groups' => ['booking:read']],
     denormalizationContext: ['groups' => ['booking:write']]
 )]
@@ -24,14 +32,14 @@ class Booking
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Groups(['booking:read', 'booking:write'])]
+    #[Groups(['booking:read', 'booking:write','user:read','charging_station:read'])]
     private ?\DateTimeInterface $createAt = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['booking:read', 'booking:write', 'charging_station:read', 'user:read'])]
     private ?\DateTimeInterface $startDate = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['booking:read', 'booking:write', 'charging_station:read', 'user:read'])]
     private ?\DateTimeInterface $endDate = null;
 
