@@ -123,6 +123,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface,TwoFacto
     {
         $this->bookings = new ArrayCollection();
         $this->chargingStations = new ArrayCollection();
+        $this->picture = 'images/default_avatar.png';
     }
 
     public function getId(): ?int
