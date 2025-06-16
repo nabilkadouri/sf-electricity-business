@@ -42,7 +42,7 @@ class MeController extends AbstractController
         SluggerInterface $slugger,
         EntityManagerInterface $entityManager,
         ParameterBagInterface $parameterBag,
-        Filesystem $filesystem // Injectez le service Filesystem
+        Filesystem $filesystem 
     ): JsonResponse {
         /** @var User|null $user */
         $user = $security->getUser();
@@ -71,17 +71,14 @@ class MeController extends AbstractController
 
         // Supprime l'ancienne photo si elle existe avant d'en uploader une nouvelle
         if ($user->getPicture()) {
-            // Récupère juste le nom du fichier depuis le chemin relatif stocké
             $oldPictureBasename = basename($user->getPicture());
             $oldPicturePath = $uploadDirectory . '/' . $oldPictureBasename;
             
             // Vérifie si l'ancienne image n'est PAS l'image par défaut avant de la supprimer physiquement
-            // Adaptez 'default_avatar.png' si le nom de votre fichier par défaut est différent
             if ($oldPictureBasename !== 'default_avatar.png' && $filesystem->exists($oldPicturePath)) {
                 try {
                     $filesystem->remove($oldPicturePath);
                 } catch (IOExceptionInterface $exception) {
-                    // Log l'erreur si la suppression échoue, mais ne bloque pas l'upload de la nouvelle image
                     error_log("Impossible de supprimer l'ancienne photo : " . $exception->getMessage());
                 }
             }
@@ -96,7 +93,6 @@ class MeController extends AbstractController
             return new JsonResponse(['message' => 'Erreur lors du déplacement du fichier image.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        // Sauvegarde le chemin relatif dans la base de données
         $user->setPicture('uploads/profile_pictures/' . $newFilename);
 
         $entityManager->persist($user);
