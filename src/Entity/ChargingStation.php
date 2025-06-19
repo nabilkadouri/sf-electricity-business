@@ -2,7 +2,9 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use App\Controller\GetChargingStationByUserController;
 use App\Enum\ChargingStationStatus;
 use App\Repository\ChargingStationRepository;
@@ -24,8 +26,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
             security: "is_granted('IS_AUTHENTICATED_FULLY')",
             read: false,
             output: ChargingStation::class,
+            normalizationContext: ['groups' => ['charging_station:read']]
+        ),
+        new Post(
+            security: "is_granted('EDIT_CHARGING_STATION', object)",
             normalizationContext: ['groups' => ['charging_station:read']],
-        )
+            denormalizationContext: ['groups' => ['charging_station:write']]
+        ),
+        new Delete(security: "is_granted('DELETE_CHARGING_STATION', object)"),
     ],
     normalizationContext: ['groups' => ['charging_station:read']],
     denormalizationContext: ['groups' => ['charging_station:write']]
@@ -51,7 +59,7 @@ class ChargingStation
     private ?string $power = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['charging_station:read'])] 
+    #[Groups(['charging_station:read', 'charging_station:write'])] 
     private ?string $plugType = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
@@ -104,6 +112,7 @@ class ChargingStation
         $this->bookings = new ArrayCollection();
         $this->timeslots = new ArrayCollection();
         $this->plugType = 'Type 2';
+        $this->picture = 'images/default_picture_station.png';
     }
 
     public function getId(): ?int
@@ -143,6 +152,18 @@ class ChargingStation
     public function setPower(string $power): static
     {
         $this->power = $power;
+
+        return $this;
+    }
+
+    public function getPlugType(): ?string
+    {
+        return $this->plugType;
+    }
+
+    public function setPlugType(?string $plugType): static
+    {
+        $this->plugType = $plugType;
 
         return $this;
     }
