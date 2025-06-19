@@ -22,7 +22,7 @@ class LocationStation
     #[Groups(['location_station:read', 'charging_station:read','booking:read','user:read' ])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['location_station:read', 'location_station:write', 'charging_station:write', 'charging_station:read','booking:read','user:read'])]
     private ?string $name = null;
 
