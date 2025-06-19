@@ -48,7 +48,7 @@ class MeController extends AbstractController
         $user = $security->getUser();
 
         if (!$user) {
-            return new JsonResponse(['message' => 'Vous devez être connecté pour faire ceci.'], Response::HTTP_UNAUTHORIZED);
+            return new JsonResponse(['message' => 'User non trouvé !'], Response::HTTP_UNAUTHORIZED);
         }
 
         /** @var UploadedFile|null $pictureFile */
